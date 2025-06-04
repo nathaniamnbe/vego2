@@ -13,10 +13,17 @@ import { Ionicons } from '@expo/vector-icons';
 
 const { width } = Dimensions.get('window');
 
-export default function LoginScreen({ navigation, onLogin }) {
+export default function SignupScreen({ navigation }) {
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [rememberMe, setRememberMe] = useState(false);
+
+  const handleSignup = () => {
+    // TODO: Validasi dan proses signup
+    console.log('Signup:', { name, email, password });
+    // Setelah sukses daftar, arahkan ke Login atau langsung masuk
+    navigation.navigate('Login');
+  };
 
   return (
     <View style={styles.container}>
@@ -25,14 +32,25 @@ export default function LoginScreen({ navigation, onLogin }) {
         colors={['#FFA726', '#FF9800']}
         style={styles.gradient}
       >
-        <TouchableOpacity style={styles.backButton}>
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={24} color="white" />
         </TouchableOpacity>
 
         <Text style={styles.logo}>Vego</Text>
 
         <View style={styles.formContainer}>
-          <Text style={styles.title}>Login</Text>
+          <Text style={styles.title}>Sign Up</Text>
+
+          <View style={styles.inputContainer}>
+            <Ionicons name="person-outline" size={20} color="#FFA726" style={styles.inputIcon} />
+            <TextInput
+              style={styles.input}
+              placeholder="Full Name"
+              placeholderTextColor="#999"
+              value={name}
+              onChangeText={setName}
+            />
+          </View>
 
           <View style={styles.inputContainer}>
             <Ionicons name="mail-outline" size={20} color="#FFA726" style={styles.inputIcon} />
@@ -58,34 +76,16 @@ export default function LoginScreen({ navigation, onLogin }) {
             />
           </View>
 
-          <View style={styles.optionsContainer}>
-            <TouchableOpacity 
-              style={styles.rememberContainer}
-              onPress={() => setRememberMe(!rememberMe)}
-            >
-              <View style={[styles.checkbox, rememberMe && styles.checkedBox]}>
-                {rememberMe && <Ionicons name="checkmark" size={12} color="white" />}
-              </View>
-              <Text style={styles.rememberText}>Remember me</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity>
-              <Text style={styles.forgotText}>Forgot password?</Text>
-            </TouchableOpacity>
-          </View>
-
-          <TouchableOpacity style={styles.signInButton} onPress={onLogin}>
-            <Text style={styles.signInText}>Sign In</Text>
+          <TouchableOpacity style={styles.signUpButton} onPress={handleSignup}>
+            <Text style={styles.signUpText}>Register</Text>
           </TouchableOpacity>
 
-          <Text style={styles.orText}>or</Text>
-
-           <TouchableOpacity
-              style={styles.googleButton}
-              onPress={() => navigation.navigate('Signup')}
-            >
-              <Text style={styles.googleText}>Register</Text>
+          <View style={styles.loginRedirect}>
+            <Text style={styles.loginText}>Already have an account? </Text>
+            <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+              <Text style={styles.loginLink}>Login</Text>
             </TouchableOpacity>
+          </View>
         </View>
       </LinearGradient>
     </View>
@@ -144,76 +144,28 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#333',
   },
-  optionsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 30,
-  },
-  rememberContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  checkbox: {
-    width: 16,
-    height: 16,
-    borderWidth: 1,
-    borderColor: '#DDD',
-    borderRadius: 3,
-    marginRight: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  checkedBox: {
-    backgroundColor: '#FFA726',
-    borderColor: '#FFA726',
-  },
-  rememberText: {
-    fontSize: 14,
-    color: '#666',
-  },
-  forgotText: {
-    fontSize: 14,
-    color: '#FFA726',
-  },
-  signInButton: {
+  signUpButton: {
     backgroundColor: '#FFA726',
     paddingVertical: 15,
     borderRadius: 25,
     alignItems: 'center',
+    marginTop: 20,
     marginBottom: 20,
   },
-  signInText: {
+  signUpText: {
     color: 'white',
     fontSize: 16,
     fontWeight: 'bold',
   },
-  orText: {
-    textAlign: 'center',
-    color: '#999',
-    marginBottom: 20,
-  },
-  googleButton: {
-    borderWidth: 1,
-    borderColor: '#DDD',
-    paddingVertical: 15,
-    borderRadius: 25,
-    alignItems: 'center',
-    marginBottom: 30,
-  },
-  googleText: {
-    color: '#333',
-    fontSize: 16,
-  },
-  signUpContainer: {
+  loginRedirect: {
     flexDirection: 'row',
     justifyContent: 'center',
   },
-  signUpText: {
+  loginText: {
     color: '#666',
     fontSize: 14,
   },
-  signUpLink: {
+  loginLink: {
     color: '#FFA726',
     fontSize: 14,
     fontWeight: 'bold',
