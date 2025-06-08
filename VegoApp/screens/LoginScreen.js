@@ -6,17 +6,38 @@ import {
   TouchableOpacity,
   StyleSheet,
   StatusBar,
-  Dimensions
+  Dimensions,
+  Alert
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import { supabase } from '../supabase';
 
 const { width } = Dimensions.get('window');
 
-export default function LoginScreen({ navigation, onLogin }) {
+export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
+
+  const handleLogin = async () => {
+    if (!email || !password) {
+      Alert.alert('Error', 'Please enter email and password.');
+      return;
+    }
+
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error) {
+      Alert.alert('Login Error', error.message);
+    } else {
+      Alert.alert('Success', 'Login successful!');
+      navigation.navigate('Home'); // Ganti dengan halaman tujuan setelah login
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -25,7 +46,7 @@ export default function LoginScreen({ navigation, onLogin }) {
         colors={['#FFA726', '#FF9800']}
         style={styles.gradient}
       >
-        <TouchableOpacity style={styles.backButton}>
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={24} color="white" />
         </TouchableOpacity>
 
@@ -43,6 +64,7 @@ export default function LoginScreen({ navigation, onLogin }) {
               value={email}
               onChangeText={setEmail}
               keyboardType="email-address"
+              autoCapitalize="none"
             />
           </View>
 
@@ -74,18 +96,18 @@ export default function LoginScreen({ navigation, onLogin }) {
             </TouchableOpacity>
           </View>
 
-          <TouchableOpacity style={styles.signInButton} onPress={onLogin}>
+          <TouchableOpacity style={styles.signInButton} onPress={handleLogin}>
             <Text style={styles.signInText}>Sign In</Text>
           </TouchableOpacity>
 
           <Text style={styles.orText}>or</Text>
 
-           <TouchableOpacity
-              style={styles.googleButton}
-              onPress={() => navigation.navigate('Signup')}
-            >
-              <Text style={styles.googleText}>Register</Text>
-            </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.googleButton}
+            onPress={() => navigation.navigate('Signup')}
+          >
+            <Text style={styles.googleText}>Register</Text>
+          </TouchableOpacity>
         </View>
       </LinearGradient>
     </View>

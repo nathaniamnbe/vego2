@@ -5,6 +5,8 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Status
 import { LinearGradient } from "expo-linear-gradient"
 import { Ionicons } from "@expo/vector-icons"
 import * as ImagePicker from "expo-image-picker"
+import { AuthContext } from "../context/AuthContext"; // Pastikan path sesuai
+import { useContext } from "react";
 
 export default function ProfileScreen({ navigation }) {
   const [isEditing, setIsEditing] = useState(false)
@@ -96,18 +98,21 @@ export default function ProfileScreen({ navigation }) {
     Alert.alert("Berhasil", "Profil berhasil diperbarui!")
   }
 
-  const handleLogout = () => {
-    Alert.alert("Logout", "Apakah Anda yakin ingin keluar?", [
-      { text: "Batal", style: "cancel" },
-      {
-        text: "Keluar",
-        style: "destructive",
-        onPress: () => {
-          Alert.alert("Berhasil Keluar", "Anda telah berhasil keluar dari aplikasi")
-        },
+  const { setIsLoggedIn } = useContext(AuthContext);
+
+const handleLogout = () => {
+  Alert.alert("Logout", "Apakah Anda yakin ingin keluar?", [
+    { text: "Batal", style: "cancel" },
+    {
+      text: "Keluar",
+      style: "destructive",
+      onPress: () => {
+        setIsLoggedIn(false); // Ini akan trigger navigasi kembali ke LoginScreen
       },
-    ])
-  }
+    },
+  ])
+}
+
 
   if (isEditing) {
     return (

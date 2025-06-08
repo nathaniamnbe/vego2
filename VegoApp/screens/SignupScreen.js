@@ -6,24 +6,38 @@ import {
   TouchableOpacity,
   StyleSheet,
   StatusBar,
-  Dimensions
+  Dimensions,
+  Alert
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import { supabase } from '../supabase';
 
 const { width } = Dimensions.get('window');
 
-export default function SignupScreen({ navigation }) {
+export default function SignupScreen({ navigation, onLogin }) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  const handleSignup = () => {
-    // TODO: Validasi dan proses signup
-    console.log('Signup:', { name, email, password });
-    // Setelah sukses daftar, arahkan ke Login atau langsung masuk
-    navigation.navigate('Login');
-  };
+  const handleSignup = async () => {
+  if (!name || !email || !password) {
+    Alert.alert("Error", "Please fill all fields.");
+    return;
+  }
+
+  const { error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: { data: { name } },
+  });
+
+  if (error) {
+    Alert.alert("Signup Error", error.message);
+  } else {
+    onLogin(); // ⬅️ ini akan memicu pindah ke TabNavigator (HomeScreen)
+  }
+};
 
   return (
     <View style={styles.container}>
@@ -61,6 +75,7 @@ export default function SignupScreen({ navigation }) {
               value={email}
               onChangeText={setEmail}
               keyboardType="email-address"
+              autoCapitalize="none"
             />
           </View>
 
