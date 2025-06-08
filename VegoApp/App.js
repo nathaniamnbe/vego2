@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
+
 import OnboardingScreen from './screens/OnboardingScreen';
 import LoginScreen from './screens/LoginScreen';
+import SignupScreen from './screens/SignupScreen';
 import TabNavigator from './components/TabNavigator';
-
-
 
 const Stack = createStackNavigator();
 
@@ -26,14 +26,17 @@ export default function App() {
             )}
           </Stack.Screen>
         ) : !isLoggedIn ? (
-          <Stack.Screen name="Login">
-            {props => (
-              <LoginScreen
-                {...props}
-                onLogin={() => setIsLoggedIn(true)}
-              />
-            )}
-          </Stack.Screen>
+          <>
+            <Stack.Screen name="Login">
+              {props => (
+                <LoginScreen
+                  {...props}
+                  onLogin={() => setIsLoggedIn(true)}
+                />
+              )}
+            </Stack.Screen>
+            <Stack.Screen name="Signup" component={SignupScreen} />
+          </>
         ) : (
           <Stack.Screen name="Main" component={TabNavigator} />
         )}
