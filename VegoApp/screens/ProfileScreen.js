@@ -5,8 +5,8 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Status
 import { LinearGradient } from "expo-linear-gradient"
 import { Ionicons } from "@expo/vector-icons"
 import * as ImagePicker from "expo-image-picker"
-import { AuthContext } from "../context/AuthContext"; // Pastikan path sesuai
-import { useContext } from "react";
+import { AuthContext } from "../context/AuthContext" // Pastikan path sesuai
+import { useContext } from "react"
 
 export default function ProfileScreen({ navigation }) {
   const [isEditing, setIsEditing] = useState(false)
@@ -21,11 +21,7 @@ export default function ProfileScreen({ navigation }) {
   const menuItems = [
     { icon: "person-outline", title: "Your Profile", color: "#FFA726" },
     { icon: "location-outline", title: "Address", color: "#FFA726" },
-    { icon: "card-outline", title: "Payment Method", color: "#FFA726" },
-    { icon: "bag-outline", title: "Order", color: "#FFA726" },
-    { icon: "notifications-outline", title: "Notification", color: "#FFA726" },
-    { icon: "settings-outline", title: "Setting", color: "#FFA726" },
-    { icon: "help-circle-outline", title: "Help Center", color: "#FFA726" },
+    { icon: "bag-outline", title: "Order History", color: "#FFA726" },
     { icon: "log-out-outline", title: "Log out", color: "#F44336" },
   ]
 
@@ -98,21 +94,34 @@ export default function ProfileScreen({ navigation }) {
     Alert.alert("Berhasil", "Profil berhasil diperbarui!")
   }
 
-  const { setIsLoggedIn } = useContext(AuthContext);
+  const { setIsLoggedIn } = useContext(AuthContext)
 
-const handleLogout = () => {
-  Alert.alert("Logout", "Apakah Anda yakin ingin keluar?", [
-    { text: "Batal", style: "cancel" },
-    {
-      text: "Keluar",
-      style: "destructive",
-      onPress: () => {
-        setIsLoggedIn(false); // Ini akan trigger navigasi kembali ke LoginScreen
+  const handleLogout = () => {
+    Alert.alert("Logout", "Apakah Anda yakin ingin keluar?", [
+      { text: "Batal", style: "cancel" },
+      {
+        text: "Keluar",
+        style: "destructive",
+        onPress: () => {
+          setIsLoggedIn(false) // Ini akan trigger navigasi kembali ke LoginScreen
+        },
       },
-    },
-  ])
-}
+    ])
+  }
 
+  const handleMenuPress = (item) => {
+    if (item.title === "Your Profile") {
+      setIsEditing(true)
+    } else if (item.title === "Address") {
+      navigation.navigate("AddressScreen")
+    } else if (item.title === "Order History") {
+      navigation.navigate("OrderHistoryScreen") // Navigate to OrderHistoryScreen
+    } else if (item.title === "Log out") {
+      handleLogout()
+    } else {
+      Alert.alert("Fitur", `Fitur ${item.title} segera hadir!`)
+    }
+  }
 
   if (isEditing) {
     return (
@@ -209,7 +218,6 @@ const handleLogout = () => {
             </TouchableOpacity>
             <View style={styles.profileText}>
               <Text style={styles.profileName}>{profileData.name}</Text>
-              <Text style={styles.profileBalance}>Rp 100.000</Text>
               <TouchableOpacity onPress={showImagePickerOptions}>
                 <Text style={styles.changeText}>Ubah Foto</Text>
               </TouchableOpacity>
@@ -221,19 +229,7 @@ const handleLogout = () => {
           <Text style={styles.menuSectionTitle}>Akun</Text>
 
           {menuItems.map((item, index) => (
-            <TouchableOpacity
-              key={index}
-              style={styles.menuItem}
-              onPress={() => {
-                if (item.title === "Your Profile") {
-                  setIsEditing(true)
-                } else if (item.title === "Log out") {
-                  handleLogout()
-                } else {
-                  Alert.alert("Fitur", `Fitur ${item.title} segera hadir!`)
-                }
-              }}
-            >
+            <TouchableOpacity key={index} style={styles.menuItem} onPress={() => handleMenuPress(item)}>
               <View style={styles.menuItemLeft}>
                 <Ionicons name={item.icon} size={24} color={item.color} />
                 <Text style={[styles.menuItemText, { color: item.color }]}>{item.title}</Text>

@@ -24,12 +24,6 @@ export default function PaymentScreen({ navigation }) {
   ];
 
   const banks = [
-    { id: 1, name: 'Bank BCA', icon: 'card' },
-    { id: 2, name: 'Bank Mandiri', icon: 'card' },
-    { id: 3, name: 'Bank BRI', icon: 'card' },
-    { id: 4, name: 'Alfamart', icon: 'storefront' },
-    { id: 5, name: 'Indomaret', icon: 'storefront' },
-    { id: 6, name: 'Mitra Vego', icon: 'people' }
   ];
 
   const transactions = [

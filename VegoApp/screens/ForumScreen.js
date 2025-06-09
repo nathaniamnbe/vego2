@@ -17,19 +17,19 @@ const { width } = Dimensions.get('window');
 
 export default function ForumScreen({ navigation }) {
   const [selectedFilter, setSelectedFilter] = useState('Newest');
-
-  const filters = ['Newest', 'Popular', 'Most Liked'];
-
-  const topReviews = [
+  const [reviews, setReviews] = useState([
     {
       id: 1,
       author: 'Hanni Pham',
       rating: 5,
       text: 'Restoran ini adalah surga vegan dengan menu beragam, pelayanan cepat, dan suasana nyaman. Sangat direkomendasikan untuk mencoba makanan vegan.',
       image: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=200',
-      avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=100'
+      avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=100',
+      timestamp: new Date().toISOString()
     }
-  ];
+  ]);
+
+  const filters = ['Newest', 'Popular', 'Most Liked'];
 
   const topSharing = [
     {
@@ -42,6 +42,14 @@ export default function ForumScreen({ navigation }) {
       comments: 0
     }
   ];
+
+  const handleAddReview = () => {
+    navigation.navigate('WriteReview', {
+      onReviewSubmit: (newReview) => {
+        setReviews(prevReviews => [newReview, ...prevReviews]);
+      }
+    });
+  };
 
   return (
     <View style={styles.container}>
@@ -57,7 +65,9 @@ export default function ForumScreen({ navigation }) {
             <Ionicons name="arrow-back" size={24} color="white" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Forum</Text>
-          <View style={{ width: 24 }} />
+          <TouchableOpacity onPress={handleAddReview} style={styles.addButton}>
+            <Ionicons name="add" size={24} color="white" />
+          </TouchableOpacity>
         </View>
 
         <View style={styles.searchContainer}>
@@ -103,7 +113,7 @@ export default function ForumScreen({ navigation }) {
             </TouchableOpacity>
           </View>
 
-          {topReviews.map((review) => (
+          {reviews.map((review) => (
             <View key={review.id} style={styles.reviewCard}>
               <Image source={{ uri: review.image }} style={styles.reviewImage} />
               <View style={styles.reviewContent}>
@@ -158,9 +168,33 @@ export default function ForumScreen({ navigation }) {
         {/* All Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>All</Text>
-          {/* Add more forum posts here */}
+          {/* Display all reviews here */}
+          {reviews.slice(1).map((review) => (
+            <View key={review.id} style={styles.reviewCard}>
+              <Image source={{ uri: review.image }} style={styles.reviewImage} />
+              <View style={styles.reviewContent}>
+                <View style={styles.reviewHeader}>
+                  <Image source={{ uri: review.avatar }} style={styles.avatar} />
+                  <View style={styles.reviewAuthor}>
+                    <Text style={styles.authorName}>{review.author}</Text>
+                    <View style={styles.ratingContainer}>
+                      {[...Array(review.rating)].map((_, i) => (
+                        <Ionicons key={i} name="star" size={12} color="#FFA726" />
+                      ))}
+                    </View>
+                  </View>
+                </View>
+                <Text style={styles.reviewText}>{review.text}</Text>
+              </View>
+            </View>
+          ))}
         </View>
       </ScrollView>
+
+      {/* Floating Action Button */}
+      <TouchableOpacity style={styles.fab} onPress={handleAddReview}>
+        <Ionicons name="add" size={28} color="white" />
+      </TouchableOpacity>
     </View>
   );
 }
@@ -185,6 +219,9 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     color: 'white',
+  },
+  addButton: {
+    padding: 5,
   },
   searchContainer: {
     flexDirection: 'row',
@@ -333,5 +370,24 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#666',
     marginLeft: 5,
+  },
+  fab: {
+    position: 'absolute',
+    bottom: 30,
+    right: 30,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#FFA726',
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 8,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 4.65,
   },
 });
