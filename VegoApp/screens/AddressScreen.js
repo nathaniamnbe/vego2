@@ -12,34 +12,25 @@ import {
   KeyboardAvoidingView,
   Platform,
   Dimensions,
+  ActivityIndicator,
+  Linking,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import * as Location from 'expo-location';
+import { supabase, addressService } from '../supabase';
 
 const { height: screenHeight } = Dimensions.get('window');
 
 export default function AddressScreen({ navigation }) {
-  const [addresses, setAddresses] = useState([
-    {
-      id: 1,
-      label: 'Rumah',
-      name: 'Nathan',
-      phone: '081215841253',
-      address: 'Jl. Merdeka No. 123, RT 01/RW 02',
-      city: 'Jakarta Pusat',
-      postalCode: '10110',
-      isDefault: true,
-      coordinates: {
-        latitude: -6.2088,
-        longitude: 106.8456,
-      },
-    },
-  ]);
-
+  const [addresses, setAddresses] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingAddress, setEditingAddress] = useState(null);
   const [isLoadingLocation, setIsLoadingLocation] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [user, setUser] = useState(null);
+  
   const [formData, setFormData] = useState({
     label: '',
     name: '',
@@ -52,8 +43,49 @@ export default function AddressScreen({ navigation }) {
   });
 
   useEffect(() => {
-    requestLocationPermission();
+    initializeScreen();
   }, []);
+
+  const initializeScreen = async () => {
+    await getUser();
+    await requestLocationPermission();
+    await loadAddresses();
+  };
+
+  const getUser = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    setUser(user);
+  };
+
+  const loadAddresses = async () => {
+    try {
+      setLoading(true);
+      const data = await addressService.getAddresses();
+      
+      // Transform data to match component format
+      const transformedAddresses = data.map(addr => ({
+        id: addr.id,
+        label: addr.label,
+        name: addr.name,
+        phone: addr.phone,
+        address: addr.address,
+        city: addr.city,
+        postalCode: addr.postal_code,
+        isDefault: addr.is_default,
+        coordinates: addr.latitude && addr.longitude ? {
+          latitude: parseFloat(addr.latitude),
+          longitude: parseFloat(addr.longitude),
+        } : null,
+      }));
+      
+      setAddresses(transformedAddresses);
+    } catch (error) {
+      console.error('Error loading addresses:', error);
+      Alert.alert('Error', 'Gagal memuat alamat. Silakan coba lagi.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const requestLocationPermission = async () => {
     try {
@@ -142,6 +174,10 @@ export default function AddressScreen({ navigation }) {
   };
 
   const handleAddAddress = () => {
+    if (!user) {
+      Alert.alert('Authentication Required', 'Silakan login terlebih dahulu');
+      return;
+    }
     setEditingAddress(null);
     resetForm();
     setShowAddModal(true);
@@ -153,30 +189,65 @@ export default function AddressScreen({ navigation }) {
     setShowAddModal(true);
   };
 
-  const handleSaveAddress = () => {
+  const handleSaveAddress = async () => {
     if (!formData.label || !formData.name || !formData.phone || !formData.address || !formData.city || !formData.postalCode) {
       Alert.alert('Error', 'Mohon lengkapi semua field yang diperlukan');
       return;
     }
 
-    if (editingAddress) {
-      // Update existing address
-      setAddresses(addresses.map(addr => 
-        addr.id === editingAddress.id ? { ...formData, id: editingAddress.id } : addr
-      ));
-      Alert.alert('Berhasil', 'Alamat berhasil diperbarui!');
-    } else {
-      // Add new address
-      const newAddress = {
-        ...formData,
-        id: Date.now(),
-      };
-      setAddresses([...addresses, newAddress]);
-      Alert.alert('Berhasil', 'Alamat berhasil ditambahkan!');
-    }
+    try {
+      setSaving(true);
+      
+      if (editingAddress) {
+        // Update existing address
+        const updatedAddress = await addressService.updateAddress(editingAddress.id, formData);
+        
+        // Update local state
+        setAddresses(addresses.map(addr => 
+          addr.id === editingAddress.id ? {
+            ...formData,
+            id: editingAddress.id,
+            coordinates: formData.coordinates,
+          } : addr
+        ));
+        
+        Alert.alert('Berhasil', 'Alamat berhasil diperbarui!');
+      } else {
+        // Add new address
+        const newAddress = await addressService.addAddress(formData);
+        
+        // Transform and add to local state
+        const transformedAddress = {
+          id: newAddress.id,
+          label: newAddress.label,
+          name: newAddress.name,
+          phone: newAddress.phone,
+          address: newAddress.address,
+          city: newAddress.city,
+          postalCode: newAddress.postal_code,
+          isDefault: newAddress.is_default,
+          coordinates: newAddress.latitude && newAddress.longitude ? {
+            latitude: parseFloat(newAddress.latitude),
+            longitude: parseFloat(newAddress.longitude),
+          } : null,
+        };
+        
+        setAddresses([transformedAddress, ...addresses]);
+        Alert.alert('Berhasil', 'Alamat berhasil ditambahkan!');
+      }
 
-    setShowAddModal(false);
-    resetForm();
+      setShowAddModal(false);
+      resetForm();
+      
+      // Reload addresses to ensure consistency
+      await loadAddresses();
+      
+    } catch (error) {
+      console.error('Error saving address:', error);
+      Alert.alert('Error', 'Gagal menyimpan alamat. Silakan coba lagi.');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleDeleteAddress = (addressId) => {
@@ -188,21 +259,36 @@ export default function AddressScreen({ navigation }) {
         {
           text: 'Hapus',
           style: 'destructive',
-          onPress: () => {
-            setAddresses(addresses.filter(addr => addr.id !== addressId));
-            Alert.alert('Berhasil', 'Alamat berhasil dihapus!');
+          onPress: async () => {
+            try {
+              await addressService.deleteAddress(addressId);
+              setAddresses(addresses.filter(addr => addr.id !== addressId));
+              Alert.alert('Berhasil', 'Alamat berhasil dihapus!');
+            } catch (error) {
+              console.error('Error deleting address:', error);
+              Alert.alert('Error', 'Gagal menghapus alamat. Silakan coba lagi.');
+            }
           },
         },
       ]
     );
   };
 
-  const handleSetDefault = (addressId) => {
-    setAddresses(addresses.map(addr => ({
-      ...addr,
-      isDefault: addr.id === addressId,
-    })));
-    Alert.alert('Berhasil', 'Alamat utama berhasil diubah!');
+  const handleSetDefault = async (addressId) => {
+    try {
+      await addressService.setDefaultAddress(addressId);
+      
+      // Update local state
+      setAddresses(addresses.map(addr => ({
+        ...addr,
+        isDefault: addr.id === addressId,
+      })));
+      
+      Alert.alert('Berhasil', 'Alamat utama berhasil diubah!');
+    } catch (error) {
+      console.error('Error setting default address:', error);
+      Alert.alert('Error', 'Gagal mengubah alamat utama. Silakan coba lagi.');
+    }
   };
 
   const showLocationInfo = (coordinates) => {
@@ -227,6 +313,15 @@ export default function AddressScreen({ navigation }) {
     }
   };
 
+  if (loading) {
+    return (
+      <View style={[styles.container, styles.centerContent]}>
+        <ActivityIndicator size="large" color="#FFA726" />
+        <Text style={styles.loadingText}>Memuat alamat...</Text>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
@@ -247,63 +342,71 @@ export default function AddressScreen({ navigation }) {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        {addresses.map((address) => (
-          <View key={address.id} style={styles.addressCard}>
-            <View style={styles.addressHeader}>
-              <View style={styles.labelContainer}>
-                <Text style={styles.addressLabel}>{address.label}</Text>
-                {address.isDefault && (
-                  <View style={styles.defaultBadge}>
-                    <Text style={styles.defaultText}>Utama</Text>
-                  </View>
-                )}
-                {address.coordinates && (
-                  <TouchableOpacity
-                    onPress={() => showLocationInfo(address.coordinates)}
-                    style={styles.locationBadge}
-                  >
-                    <Ionicons name="location" size={12} color="white" />
-                  </TouchableOpacity>
-                )}
-              </View>
-              <View style={styles.actionButtons}>
-                <TouchableOpacity
-                  onPress={() => handleEditAddress(address)}
-                  style={styles.actionButton}
-                >
-                  <Ionicons name="pencil" size={16} color="#FFA726" />
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={() => handleDeleteAddress(address.id)}
-                  style={styles.actionButton}
-                >
-                  <Ionicons name="trash" size={16} color="#F44336" />
-                </TouchableOpacity>
-              </View>
-            </View>
-
-            <Text style={styles.addressName}>{address.name}</Text>
-            <Text style={styles.addressPhone}>{address.phone}</Text>
-            <Text style={styles.addressText}>
-              {address.address}, {address.city} {address.postalCode}
-            </Text>
-
-            {address.coordinates && (
-              <Text style={styles.coordinatesText}>
-                📍 {address.coordinates.latitude.toFixed(4)}, {address.coordinates.longitude.toFixed(4)}
-              </Text>
-            )}
-
-            {!address.isDefault && (
-              <TouchableOpacity
-                onPress={() => handleSetDefault(address.id)}
-                style={styles.setDefaultButton}
-              >
-                <Text style={styles.setDefaultText}>Jadikan Alamat Utama</Text>
-              </TouchableOpacity>
-            )}
+        {addresses.length === 0 ? (
+          <View style={styles.emptyState}>
+            <Ionicons name="location-outline" size={64} color="#ccc" />
+            <Text style={styles.emptyStateText}>Belum ada alamat tersimpan</Text>
+            <Text style={styles.emptyStateSubtext}>Tambahkan alamat pertama Anda</Text>
           </View>
-        ))}
+        ) : (
+          addresses.map((address) => (
+            <View key={address.id} style={styles.addressCard}>
+              <View style={styles.addressHeader}>
+                <View style={styles.labelContainer}>
+                  <Text style={styles.addressLabel}>{address.label}</Text>
+                  {address.isDefault && (
+                    <View style={styles.defaultBadge}>
+                      <Text style={styles.defaultText}>Utama</Text>
+                    </View>
+                  )}
+                  {address.coordinates && (
+                    <TouchableOpacity
+                      onPress={() => showLocationInfo(address.coordinates)}
+                      style={styles.locationBadge}
+                    >
+                      <Ionicons name="location" size={12} color="white" />
+                    </TouchableOpacity>
+                  )}
+                </View>
+                <View style={styles.actionButtons}>
+                  <TouchableOpacity
+                    onPress={() => handleEditAddress(address)}
+                    style={styles.actionButton}
+                  >
+                    <Ionicons name="pencil" size={16} color="#FFA726" />
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() => handleDeleteAddress(address.id)}
+                    style={styles.actionButton}
+                  >
+                    <Ionicons name="trash" size={16} color="#F44336" />
+                  </TouchableOpacity>
+                </View>
+              </View>
+
+              <Text style={styles.addressName}>{address.name}</Text>
+              <Text style={styles.addressPhone}>{address.phone}</Text>
+              <Text style={styles.addressText}>
+                {address.address}, {address.city} {address.postalCode}
+              </Text>
+
+              {address.coordinates && (
+                <Text style={styles.coordinatesText}>
+                  📍 {address.coordinates.latitude.toFixed(4)}, {address.coordinates.longitude.toFixed(4)}
+                </Text>
+              )}
+
+              {!address.isDefault && (
+                <TouchableOpacity
+                  onPress={() => handleSetDefault(address.id)}
+                  style={styles.setDefaultButton}
+                >
+                  <Text style={styles.setDefaultText}>Jadikan Alamat Utama</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          ))
+        )}
 
         <TouchableOpacity onPress={handleAddAddress} style={styles.addButton}>
           <Ionicons name="add-circle-outline" size={24} color="#FFA726" />
@@ -330,8 +433,12 @@ export default function AddressScreen({ navigation }) {
               <Text style={styles.headerTitle}>
                 {editingAddress ? 'Edit Alamat' : 'Tambah Alamat'}
               </Text>
-              <TouchableOpacity onPress={handleSaveAddress}>
-                <Text style={styles.saveText}>Simpan</Text>
+              <TouchableOpacity onPress={handleSaveAddress} disabled={saving}>
+                {saving ? (
+                  <ActivityIndicator size="small" color="white" />
+                ) : (
+                  <Text style={styles.saveText}>Simpan</Text>
+                )}
               </TouchableOpacity>
             </View>
           </LinearGradient>
@@ -454,10 +561,36 @@ export default function AddressScreen({ navigation }) {
   );
 }
 
+// Styles (sama seperti sebelumnya dengan tambahan beberapa style baru)
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f5f5f5',
+  },
+  centerContent: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: '#666',
+  },
+  emptyState: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 60,
+  },
+  emptyStateText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#666',
+    marginTop: 16,
+  },
+  emptyStateSubtext: {
+    fontSize: 14,
+    color: '#999',
+    marginTop: 8,
   },
   header: {
     paddingTop: 50,

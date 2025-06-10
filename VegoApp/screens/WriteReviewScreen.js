@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -10,20 +10,57 @@ import {
   StatusBar,
   Alert,
   KeyboardAvoidingView,
-  Platform
+  Platform,
+  ActivityIndicator
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
+import { supabase, authService } from '../supabase';
+import { decode } from 'base64-arraybuffer';
 
 export default function WriteReviewScreen({ navigation, route }) {
   const [rating, setRating] = useState(0);
   const [reviewText, setReviewText] = useState('');
   const [authorName, setAuthorName] = useState('');
   const [selectedImage, setSelectedImage] = useState(null);
+  const [selectedImageBase64, setSelectedImageBase64] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
+  const [userProfile, setUserProfile] = useState(null);
 
   const { onReviewSubmit } = route.params || {};
+
+  // Check current user and load profile
+  useEffect(() => {
+    checkUser();
+  }, []);
+
+  const checkUser = async () => {
+    try {
+      // Menggunakan authService dari supabase.js
+      const user = await authService.getCurrentUser();
+      setCurrentUser(user);
+      
+      if (user) {
+        // Load user profile
+        const { data: profile, error } = await supabase
+          .from('profiles')
+          .select('full_name, avatar_url')
+          .eq('id', user.id)
+          .single();
+        
+        if (!error && profile) {
+          setUserProfile(profile);
+          setAuthorName(profile.full_name || user.email || '');
+        } else {
+          setAuthorName(user.email || '');
+        }
+      }
+    } catch (error) {
+      console.error('Error checking user:', error);
+    }
+  };
 
   const pickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -36,15 +73,64 @@ export default function WriteReviewScreen({ navigation, route }) {
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
       aspect: [4, 3],
-      quality: 1,
+      quality: 0.8,
+      base64: true, // Enable base64 for Supabase upload
     });
 
     if (!result.canceled) {
       setSelectedImage(result.assets[0].uri);
+      setSelectedImageBase64(result.assets[0].base64);
+    }
+  };
+
+  const uploadImageToSupabase = async (base64Image) => {
+    try {
+      if (!currentUser) {
+        throw new Error('User not authenticated');
+      }
+
+      const fileName = `${currentUser.id}-${Date.now()}.jpg`;
+      const filePath = `food_images/${fileName}`;
+      
+      // Convert base64 to ArrayBuffer
+      const arrayBuffer = decode(base64Image);
+      
+      // Upload to Supabase Storage
+      const { data, error } = await supabase
+        .storage
+        .from('food_images')
+        .upload(filePath, arrayBuffer, {
+          contentType: 'image/jpeg',
+          upsert: false
+        });
+      
+      if (error) {
+        throw error;
+      }
+      
+      // Get public URL
+      const { data: { publicUrl } } = supabase
+        .storage
+        .from('food_images')
+        .getPublicUrl(filePath);
+      
+      return publicUrl;
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      throw error;
     }
   };
 
   const handleSubmit = async () => {
+    // Validation
+    if (!currentUser) {
+      Alert.alert('Authentication Required', 'Please login to submit a review', [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Login', onPress: () => navigation.navigate('Login') }
+      ]);
+      return;
+    }
+
     if (!authorName.trim()) {
       Alert.alert('Error', 'Please enter your name');
       return;
@@ -60,26 +146,87 @@ export default function WriteReviewScreen({ navigation, route }) {
 
     setIsSubmitting(true);
 
-    const newReview = {
-      id: Date.now(),
-      author: authorName.trim(),
-      rating: rating,
-      text: reviewText.trim(),
-      image: selectedImage || 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=200',
-      avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=100',
-      timestamp: new Date().toISOString()
-    };
+    try {
+      let imageUrl = null;
+      
+      // Upload image if selected
+      if (selectedImageBase64) {
+        try {
+          imageUrl = await uploadImageToSupabase(selectedImageBase64);
+        } catch (imageError) {
+          console.error('Image upload failed:', imageError);
+          Alert.alert(
+            'Image Upload Failed', 
+            'Your review will be posted without the image. Continue?',
+            [
+              { text: 'Cancel', style: 'cancel', onPress: () => setIsSubmitting(false) },
+              { text: 'Continue', onPress: () => submitReview(null) }
+            ]
+          );
+          return;
+        }
+      }
+      
+      await submitReview(imageUrl);
+      
+    } catch (error) {
+      console.error('Error submitting review:', error);
+      Alert.alert('Error', 'Failed to submit review. Please try again.');
+      setIsSubmitting(false);
+    }
+  };
 
-    // Simulate API call
-    setTimeout(() => {
+  const submitReview = async (imageUrl) => {
+    try {
+      // Insert review into Supabase
+      const { data, error } = await supabase
+        .from('food_reviews')
+        .insert([
+          {
+            user_id: currentUser.id,
+            author_name: authorName.trim(),
+            rating: rating,
+            review_text: reviewText.trim(),
+            food_image_url: imageUrl,
+            avatar_url: userProfile?.avatar_url || null,
+            likes: 0,
+            comments: 0
+          }
+        ])
+        .select()
+        .single();
+
+      if (error) {
+        throw error;
+      }
+
+      // Create review object for local state update
+      const newReview = {
+        id: data.id,
+        author: authorName.trim(),
+        rating: rating,
+        text: reviewText.trim(),
+        image: imageUrl || 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=200',
+        avatar: userProfile?.avatar_url || 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=100',
+        timestamp: data.created_at,
+        likes: 0,
+        comments: 0
+      };
+
+      // Call callback function to update ForumScreen
       if (onReviewSubmit) {
         onReviewSubmit(newReview);
       }
+
       setIsSubmitting(false);
       Alert.alert('Success', 'Your review has been posted!', [
         { text: 'OK', onPress: () => navigation.goBack() }
       ]);
-    }, 1000);
+
+    } catch (error) {
+      console.error('Error saving review to database:', error);
+      throw error;
+    }
   };
 
   const renderStars = () => {
@@ -101,6 +248,15 @@ export default function WriteReviewScreen({ navigation, route }) {
             </TouchableOpacity>
           ))}
         </View>
+        {rating > 0 && (
+          <Text style={styles.ratingText}>
+            {rating === 1 && "Poor"}
+            {rating === 2 && "Fair"}
+            {rating === 3 && "Good"}
+            {rating === 4 && "Very Good"}
+            {rating === 5 && "Excellent"}
+          </Text>
+        )}
       </View>
     );
   };
@@ -127,24 +283,45 @@ export default function WriteReviewScreen({ navigation, route }) {
             disabled={isSubmitting}
             style={[styles.submitButton, isSubmitting && styles.submitButtonDisabled]}
           >
-            <Text style={styles.submitButtonText}>
-              {isSubmitting ? 'Posting...' : 'Post'}
-            </Text>
+            {isSubmitting ? (
+              <ActivityIndicator size="small" color="white" />
+            ) : (
+              <Text style={styles.submitButtonText}>Post</Text>
+            )}
           </TouchableOpacity>
         </View>
       </LinearGradient>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        {/* User Info Section */}
+        {currentUser && (
+          <View style={styles.userInfoSection}>
+            <Image 
+              source={{ 
+                uri: userProfile?.avatar_url || 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=100' 
+              }} 
+              style={styles.userAvatar} 
+            />
+            <View style={styles.userInfo}>
+              <Text style={styles.userEmail}>{currentUser.email}</Text>
+              <Text style={styles.reviewingAs}>Reviewing as:</Text>
+            </View>
+          </View>
+        )}
+
         {/* Author Name Input */}
         <View style={styles.inputSection}>
-          <Text style={styles.inputLabel}>Your Name</Text>
+          <Text style={styles.inputLabel}>Display Name</Text>
           <TextInput
             style={styles.textInput}
-            placeholder="Enter your name"
+            placeholder="Enter your display name"
             value={authorName}
             onChangeText={setAuthorName}
             maxLength={50}
           />
+          <Text style={styles.helperText}>
+            This name will be shown with your review
+          </Text>
         </View>
 
         {/* Rating Section */}
@@ -157,11 +334,23 @@ export default function WriteReviewScreen({ navigation, route }) {
           <Text style={styles.inputLabel}>Add Photo (Optional)</Text>
           <TouchableOpacity style={styles.imagePickerButton} onPress={pickImage}>
             {selectedImage ? (
-              <Image source={{ uri: selectedImage }} style={styles.selectedImage} />
+              <View style={styles.selectedImageContainer}>
+                <Image source={{ uri: selectedImage }} style={styles.selectedImage} />
+                <TouchableOpacity 
+                  style={styles.removeImageButton}
+                  onPress={() => {
+                    setSelectedImage(null);
+                    setSelectedImageBase64(null);
+                  }}
+                >
+                  <Ionicons name="close-circle" size={24} color="#ff4444" />
+                </TouchableOpacity>
+              </View>
             ) : (
               <View style={styles.imagePlaceholder}>
                 <Ionicons name="camera" size={40} color="#ccc" />
                 <Text style={styles.imagePlaceholderText}>Tap to add photo</Text>
+                <Text style={styles.imageHelperText}>Show others what you ordered!</Text>
               </View>
             )}
           </TouchableOpacity>
@@ -172,7 +361,7 @@ export default function WriteReviewScreen({ navigation, route }) {
           <Text style={styles.inputLabel}>Your Review</Text>
           <TextInput
             style={styles.textArea}
-            placeholder="Share your experience..."
+            placeholder="Share your experience... What did you like? How was the taste, service, and atmosphere?"
             value={reviewText}
             onChangeText={setReviewText}
             multiline
@@ -187,12 +376,28 @@ export default function WriteReviewScreen({ navigation, route }) {
 
         {/* Tips Section */}
         <View style={styles.tipsSection}>
-          <Text style={styles.tipsTitle}>Tips for a great review:</Text>
+          <Text style={styles.tipsTitle}>💡 Tips for a great review:</Text>
           <Text style={styles.tipText}>• Be specific about your experience</Text>
           <Text style={styles.tipText}>• Mention what you liked or didn't like</Text>
           <Text style={styles.tipText}>• Include details about food, service, and atmosphere</Text>
           <Text style={styles.tipText}>• Be honest and helpful to other users</Text>
         </View>
+
+        {/* Submit Button (Mobile) */}
+        <TouchableOpacity 
+          style={[styles.mobileSubmitButton, isSubmitting && styles.submitButtonDisabled]}
+          onPress={handleSubmit}
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? (
+            <View style={styles.submittingContainer}>
+              <ActivityIndicator size="small" color="white" style={styles.loadingIcon} />
+              <Text style={styles.mobileSubmitButtonText}>Posting Review...</Text>
+            </View>
+          ) : (
+            <Text style={styles.mobileSubmitButtonText}>Post Review</Text>
+          )}
+        </TouchableOpacity>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -223,6 +428,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
+    minWidth: 60,
+    alignItems: 'center',
   },
   submitButtonDisabled: {
     opacity: 0.5,
@@ -235,6 +442,41 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     padding: 20,
+  },
+  userInfoSection: {
+    backgroundColor: 'white',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  userAvatar: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    marginRight: 12,
+  },
+  userInfo: {
+    flex: 1,
+  },
+  userEmail: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  reviewingAs: {
+    fontSize: 12,
+    color: '#666',
+    marginTop: 2,
   },
   inputSection: {
     backgroundColor: 'white',
@@ -264,6 +506,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     backgroundColor: '#f9f9f9',
   },
+  helperText: {
+    fontSize: 12,
+    color: '#666',
+    marginTop: 4,
+  },
   starsContainer: {
     alignItems: 'center',
   },
@@ -280,6 +527,12 @@ const styles = StyleSheet.create({
   starButton: {
     padding: 4,
   },
+  ratingText: {
+    marginTop: 8,
+    fontSize: 14,
+    color: '#FFA726',
+    fontWeight: 'bold',
+  },
   imagePickerButton: {
     borderWidth: 2,
     borderColor: '#ddd',
@@ -289,12 +542,25 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#f9f9f9',
+    position: 'relative',
+  },
+  selectedImageContainer: {
+    width: '100%',
+    height: '100%',
+    position: 'relative',
   },
   selectedImage: {
     width: '100%',
     height: '100%',
     borderRadius: 10,
     resizeMode: 'cover',
+  },
+  removeImageButton: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    backgroundColor: 'white',
+    borderRadius: 12,
   },
   imagePlaceholder: {
     alignItems: 'center',
@@ -303,6 +569,12 @@ const styles = StyleSheet.create({
     marginTop: 8,
     color: '#999',
     fontSize: 14,
+    fontWeight: 'bold',
+  },
+  imageHelperText: {
+    marginTop: 4,
+    color: '#ccc',
+    fontSize: 12,
   },
   textArea: {
     borderWidth: 1,
@@ -336,5 +608,32 @@ const styles = StyleSheet.create({
     color: '#666',
     marginBottom: 4,
     lineHeight: 20,
+  },
+  mobileSubmitButton: {
+    backgroundColor: '#FFA726',
+    borderRadius: 25,
+    paddingVertical: 16,
+    alignItems: 'center',
+    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  mobileSubmitButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  submittingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  loadingIcon: {
+    marginRight: 8,
   },
 });
