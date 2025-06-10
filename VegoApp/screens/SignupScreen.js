@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import {
   View,
   Text,
@@ -7,37 +7,56 @@ import {
   StyleSheet,
   StatusBar,
   Dimensions,
-  Alert
+  Alert,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../supabase';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { AuthContext } from '../context/AuthContext';
 
 const { width } = Dimensions.get('window');
 
-export default function SignupScreen({ navigation, onLogin }) {
+export default function SignupScreen({ navigation }) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const { setIsLoggedIn } = useContext(AuthContext);
 
   const handleSignup = async () => {
-  if (!name || !email || !password) {
-    Alert.alert("Error", "Please fill all fields.");
-    return;
-  }
+    if (!name || !email || !password) {
+      Alert.alert("Error", "Please fill all fields.");
+      return;
+    }
 
-  const { error } = await supabase.auth.signUp({
-    email,
-    password,
-    options: { data: { name } },
-  });
+    if (!email.includes('@')) {
+      Alert.alert("Invalid Email", "Please enter a valid email address.");
+      return;
+    }
 
-  if (error) {
-    Alert.alert("Signup Error", error.message);
-  } else {
-    onLogin(); // ⬅️ ini akan memicu pindah ke TabNavigator (HomeScreen)
-  }
-};
+    if (password.length < 6) {
+      Alert.alert("Weak Password", "Password should be at least 6 characters.");
+      return;
+    }
+
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { data: { name } },
+    });
+
+    if (error) {
+      if (error.message.includes('already registered')) {
+        Alert.alert("Signup Error", "This email is already registered.");
+      } else {
+        Alert.alert("Signup Error", error.message);
+      }
+    } else {
+      // ✅ Simpan session & update context
+      await AsyncStorage.setItem('session', JSON.stringify(data.session));
+      setIsLoggedIn(true);
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -97,7 +116,7 @@ export default function SignupScreen({ navigation, onLogin }) {
 
           <View style={styles.loginRedirect}>
             <Text style={styles.loginText}>Already have an account? </Text>
-            <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+            <TouchableOpacity onPress={() => navigation.replace('Login')}>
               <Text style={styles.loginLink}>Login</Text>
             </TouchableOpacity>
           </View>

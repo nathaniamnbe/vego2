@@ -15,7 +15,7 @@ export default function ProfileScreen({ navigation }) {
     name: "Nathan",
     email: "nathan@gmail.com",
     phone: "081215841253",
-    birthDate: "01 / 2 / 3004",
+    birthDate: "01 / 2 / 2004",
   })
 
   const menuItems = [

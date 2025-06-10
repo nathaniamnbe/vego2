@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import {
   View,
   Text,
@@ -12,13 +12,16 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../supabase';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { AuthContext } from '../context/AuthContext';
 
 const { width } = Dimensions.get('window');
 
-export default function LoginScreen({ navigation }) {
+export default function LoginScreen({ navigation, onLogin }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
+  const { setIsLoggedIn } = useContext(AuthContext);
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -34,8 +37,8 @@ export default function LoginScreen({ navigation }) {
     if (error) {
       Alert.alert('Login Error', error.message);
     } else {
-      Alert.alert('Success', 'Login successful!');
-      navigation.navigate('Home'); // Ganti dengan halaman tujuan setelah login
+      await AsyncStorage.setItem('session', JSON.stringify(data.session));
+      setIsLoggedIn(true); // Update context
     }
   };
 
@@ -115,12 +118,8 @@ export default function LoginScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  gradient: {
-    flex: 1,
-  },
+  container: { flex: 1 },
+  gradient: { flex: 1 },
   backButton: {
     position: 'absolute',
     top: 50,
@@ -158,9 +157,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     paddingBottom: 10,
   },
-  inputIcon: {
-    marginRight: 10,
-  },
+  inputIcon: { marginRight: 10 },
   input: {
     flex: 1,
     fontSize: 16,
@@ -226,18 +223,5 @@ const styles = StyleSheet.create({
   googleText: {
     color: '#333',
     fontSize: 16,
-  },
-  signUpContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-  },
-  signUpText: {
-    color: '#666',
-    fontSize: 14,
-  },
-  signUpLink: {
-    color: '#FFA726',
-    fontSize: 14,
-    fontWeight: 'bold',
   },
 });
