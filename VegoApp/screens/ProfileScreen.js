@@ -48,7 +48,6 @@ export default function ProfileScreen({ navigation }) {
   }
 
   const openCamera = async () => {
-    // Request camera permissions
     const { status } = await ImagePicker.requestCameraPermissionsAsync()
     if (status !== "granted") {
       Alert.alert("Izin Diperlukan", "Maaf, kami memerlukan izin kamera untuk mengambil foto!")
@@ -69,7 +68,6 @@ export default function ProfileScreen({ navigation }) {
   }
 
   const openImageLibrary = async () => {
-    // Request media library permissions
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync()
     if (status !== "granted") {
       Alert.alert("Izin Diperlukan", "Maaf, kami memerlukan izin akses galeri untuk memilih foto!")
@@ -103,7 +101,7 @@ export default function ProfileScreen({ navigation }) {
         text: "Keluar",
         style: "destructive",
         onPress: () => {
-          setIsLoggedIn(false) // Ini akan trigger navigasi kembali ke LoginScreen
+          setIsLoggedIn(false) 
         },
       },
     ])
@@ -115,7 +113,7 @@ export default function ProfileScreen({ navigation }) {
     } else if (item.title === "Address") {
       navigation.navigate("AddressScreen")
     } else if (item.title === "Order History") {
-      navigation.navigate("OrderHistoryScreen") // Navigate to OrderHistoryScreen
+      navigation.navigate("OrderHistoryScreen") 
     } else if (item.title === "Log out") {
       handleLogout()
     } else {

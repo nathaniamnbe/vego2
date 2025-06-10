@@ -60,7 +60,6 @@ export default function PaymentScreen({ navigation }) {
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
       
-      {/* Header */}
       <LinearGradient
         colors={['#FFA726', '#FF9800']}
         style={styles.header}
@@ -75,7 +74,6 @@ export default function PaymentScreen({ navigation }) {
       </LinearGradient>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {/* V-Cash Card */}
         <View style={styles.vCashCard}>
           <View style={styles.vCashHeader}>
             <Text style={styles.vCashTitle}>VEGAN Cash</Text>
@@ -101,7 +99,6 @@ export default function PaymentScreen({ navigation }) {
           </View>
         </View>
 
-        {/* Top Up Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Top Up V-Cash</Text>
           
@@ -119,7 +116,6 @@ export default function PaymentScreen({ navigation }) {
             ))}
           </View>
 
-          {/* Bank Selection */}
           <View style={styles.bankContainer}>
             {banks.map((bank) => (
               <TouchableOpacity
@@ -137,7 +133,6 @@ export default function PaymentScreen({ navigation }) {
           </View>
         </View>
 
-        {/* Transaction History */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>History Pembayaran :</Text>
           <Text style={styles.historyDate}>Rabu, 01 Mei 2024</Text>

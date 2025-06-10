@@ -41,7 +41,6 @@ export default function RecipeScreen({ navigation }) {
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
       
-      {/* Header */}
       <LinearGradient
         colors={['#FFA726', '#FF9800']}
         style={styles.header}
@@ -69,7 +68,6 @@ export default function RecipeScreen({ navigation }) {
       </LinearGradient>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Ingredients Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Ingredient</Text>
           
@@ -87,7 +85,6 @@ export default function RecipeScreen({ navigation }) {
           </View>
         </View>
 
-        {/* Best for You Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Best for You</Text>
           

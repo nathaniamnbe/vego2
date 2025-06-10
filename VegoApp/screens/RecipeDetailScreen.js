@@ -45,7 +45,6 @@ export default function RecipeDetailScreen({ navigation, route }) {
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
       
-      {/* Header */}
       <LinearGradient
         colors={['#FFA726', '#FF9800']}
         style={styles.header}
@@ -60,7 +59,6 @@ export default function RecipeDetailScreen({ navigation, route }) {
       </LinearGradient>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Recipe Image and Info */}
         <View style={styles.recipeHeader}>
           <Image source={{ uri: recipeData.image }} style={styles.recipeImage} />
           <LinearGradient
@@ -81,7 +79,6 @@ export default function RecipeDetailScreen({ navigation, route }) {
           </LinearGradient>
         </View>
 
-        {/* Ingredients Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Bahan-bahan:</Text>
           

@@ -6,7 +6,6 @@ import { LinearGradient } from "expo-linear-gradient"
 import { Ionicons } from "@expo/vector-icons"
 
 export default function CartScreen({ navigation }) {
-  // Sample cart data - in real app, this would come from state management
   const [cartItems, setCartItems] = useState([
     {
       id: 1,
@@ -71,7 +70,6 @@ export default function CartScreen({ navigation }) {
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
 
-      {/* Header */}
       <LinearGradient colors={["#FFA726", "#FF9800"]} style={styles.header}>
         <View style={styles.headerTop}>
           <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
@@ -118,7 +116,6 @@ export default function CartScreen({ navigation }) {
             ))}
           </ScrollView>
 
-          {/* Order Summary */}
           <View style={styles.orderSummary}>
             <View style={styles.summaryRow}>
               <Text style={styles.summaryLabel}>Subtotal</Text>
@@ -138,7 +135,6 @@ export default function CartScreen({ navigation }) {
             </View>
           </View>
 
-          {/* Checkout Button */}
           <TouchableOpacity style={styles.checkoutButton} onPress={() => navigation.navigate("Checkout")}>
             <LinearGradient colors={["#4CAF50", "#45A049"]} style={styles.checkoutGradient}>
               <Text style={styles.checkoutButtonText}>

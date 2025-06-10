@@ -31,19 +31,16 @@ export default function WriteReviewScreen({ navigation, route }) {
 
   const { onReviewSubmit } = route.params || {};
 
-  // Check current user and load profile
   useEffect(() => {
     checkUser();
   }, []);
 
   const checkUser = async () => {
     try {
-      // Menggunakan authService dari supabase.js
       const user = await authService.getCurrentUser();
       setCurrentUser(user);
       
       if (user) {
-        // Load user profile
         const { data: profile, error } = await supabase
           .from('profiles')
           .select('full_name, avatar_url')
@@ -74,7 +71,7 @@ export default function WriteReviewScreen({ navigation, route }) {
       allowsEditing: true,
       aspect: [4, 3],
       quality: 0.8,
-      base64: true, // Enable base64 for Supabase upload
+      base64: true, 
     });
 
     if (!result.canceled) {
@@ -92,10 +89,8 @@ export default function WriteReviewScreen({ navigation, route }) {
       const fileName = `${currentUser.id}-${Date.now()}.jpg`;
       const filePath = `food_images/${fileName}`;
       
-      // Convert base64 to ArrayBuffer
       const arrayBuffer = decode(base64Image);
       
-      // Upload to Supabase Storage
       const { data, error } = await supabase
         .storage
         .from('food_images')
@@ -108,7 +103,6 @@ export default function WriteReviewScreen({ navigation, route }) {
         throw error;
       }
       
-      // Get public URL
       const { data: { publicUrl } } = supabase
         .storage
         .from('food_images')
@@ -122,7 +116,6 @@ export default function WriteReviewScreen({ navigation, route }) {
   };
 
   const handleSubmit = async () => {
-    // Validation
     if (!currentUser) {
       Alert.alert('Authentication Required', 'Please login to submit a review', [
         { text: 'Cancel', style: 'cancel' },
@@ -149,7 +142,6 @@ export default function WriteReviewScreen({ navigation, route }) {
     try {
       let imageUrl = null;
       
-      // Upload image if selected
       if (selectedImageBase64) {
         try {
           imageUrl = await uploadImageToSupabase(selectedImageBase64);
@@ -178,7 +170,6 @@ export default function WriteReviewScreen({ navigation, route }) {
 
   const submitReview = async (imageUrl) => {
     try {
-      // Insert review into Supabase
       const { data, error } = await supabase
         .from('food_reviews')
         .insert([
@@ -200,7 +191,6 @@ export default function WriteReviewScreen({ navigation, route }) {
         throw error;
       }
 
-      // Create review object for local state update
       const newReview = {
         id: data.id,
         author: authorName.trim(),
@@ -213,7 +203,6 @@ export default function WriteReviewScreen({ navigation, route }) {
         comments: 0
       };
 
-      // Call callback function to update ForumScreen
       if (onReviewSubmit) {
         onReviewSubmit(newReview);
       }
@@ -268,7 +257,6 @@ export default function WriteReviewScreen({ navigation, route }) {
     >
       <StatusBar barStyle="light-content" />
       
-      {/* Header */}
       <LinearGradient
         colors={['#FFA726', '#FF9800']}
         style={styles.header}
@@ -293,7 +281,6 @@ export default function WriteReviewScreen({ navigation, route }) {
       </LinearGradient>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {/* User Info Section */}
         {currentUser && (
           <View style={styles.userInfoSection}>
             <Image 
@@ -309,7 +296,6 @@ export default function WriteReviewScreen({ navigation, route }) {
           </View>
         )}
 
-        {/* Author Name Input */}
         <View style={styles.inputSection}>
           <Text style={styles.inputLabel}>Display Name</Text>
           <TextInput
@@ -324,12 +310,10 @@ export default function WriteReviewScreen({ navigation, route }) {
           </Text>
         </View>
 
-        {/* Rating Section */}
         <View style={styles.inputSection}>
           {renderStars()}
         </View>
 
-        {/* Image Section */}
         <View style={styles.inputSection}>
           <Text style={styles.inputLabel}>Add Photo (Optional)</Text>
           <TouchableOpacity style={styles.imagePickerButton} onPress={pickImage}>
@@ -356,7 +340,6 @@ export default function WriteReviewScreen({ navigation, route }) {
           </TouchableOpacity>
         </View>
 
-        {/* Review Text */}
         <View style={styles.inputSection}>
           <Text style={styles.inputLabel}>Your Review</Text>
           <TextInput
@@ -374,7 +357,6 @@ export default function WriteReviewScreen({ navigation, route }) {
           </Text>
         </View>
 
-        {/* Tips Section */}
         <View style={styles.tipsSection}>
           <Text style={styles.tipsTitle}>💡 Tips for a great review:</Text>
           <Text style={styles.tipText}>• Be specific about your experience</Text>
@@ -383,7 +365,6 @@ export default function WriteReviewScreen({ navigation, route }) {
           <Text style={styles.tipText}>• Be honest and helpful to other users</Text>
         </View>
 
-        {/* Submit Button (Mobile) */}
         <TouchableOpacity 
           style={[styles.mobileSubmitButton, isSubmitting && styles.submitButtonDisabled]}
           onPress={handleSubmit}

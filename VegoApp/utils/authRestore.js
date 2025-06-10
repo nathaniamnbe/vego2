@@ -6,7 +6,7 @@ export const restoreSession = async () => {
     if (error) throw error;
 
     const session = data?.session;
-    return !!session; // true jika session ada, false kalau tidak
+    return !!session; 
   } catch (error) {
     console.error("Error restoring session:", error);
     return false;

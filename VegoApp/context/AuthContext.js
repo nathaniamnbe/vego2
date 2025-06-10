@@ -1,6 +1,6 @@
 import React, { createContext, useState, useEffect } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { restoreSession } from "../utils/authRestore"; // Pastikan path ini benar
+import { restoreSession } from "../utils/authRestore"; 
 
 export const AuthContext = createContext();
 
@@ -31,7 +31,7 @@ export const AuthProvider = ({ children }) => {
         setIsLoggedIn,
         isFirstLaunch,
         setIsFirstLaunch,
-        isLoading, // <-- tambahkan ini
+        isLoading, 
       }}
     >
       {children}

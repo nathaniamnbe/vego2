@@ -38,7 +38,7 @@ export default function LoginScreen({ navigation, onLogin }) {
       Alert.alert('Login Error', error.message);
     } else {
       await AsyncStorage.setItem('session', JSON.stringify(data.session));
-      setIsLoggedIn(true); // Update context
+      setIsLoggedIn(true);
     }
   };
 

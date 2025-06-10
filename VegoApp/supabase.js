@@ -5,9 +5,7 @@ const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYm
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
-// Address service functions - YANG SUDAH ADA
 export const addressService = {
-  // Get all addresses for current user
   async getAddresses() {
     try {
       const { data, error } = await supabase
@@ -24,7 +22,6 @@ export const addressService = {
     }
   },
 
-  // Add new address
   async addAddress(addressData) {
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -55,7 +52,6 @@ export const addressService = {
     }
   },
 
-  // Update address
   async updateAddress(addressId, addressData) {
     try {
       const { data, error } = await supabase
@@ -84,7 +80,6 @@ export const addressService = {
     }
   },
 
-  // Delete address
   async deleteAddress(addressId) {
     try {
       const { error } = await supabase
@@ -100,7 +95,6 @@ export const addressService = {
     }
   },
 
-  // Set default address
   async setDefaultAddress(addressId) {
     try {
       const { data, error } = await supabase
@@ -118,7 +112,6 @@ export const addressService = {
     }
   },
 
-  // Get default address
   async getDefaultAddress() {
     try {
       const { data, error } = await supabase
@@ -127,7 +120,7 @@ export const addressService = {
         .eq('is_default', true)
         .single();
 
-      if (error && error.code !== 'PGRST116') throw error; // PGRST116 = no rows returned
+      if (error && error.code !== 'PGRST116') throw error; 
       return data;
     } catch (error) {
       console.error('Error getting default address:', error);
@@ -136,9 +129,7 @@ export const addressService = {
   },
 };
 
-// Auth helper functions - YANG SUDAH ADA
 export const authService = {
-  // Get current user
   async getCurrentUser() {
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -149,7 +140,6 @@ export const authService = {
     }
   },
 
-  // Check if user is authenticated
   async isAuthenticated() {
     try {
       const user = await this.getCurrentUser();
@@ -159,7 +149,6 @@ export const authService = {
     }
   },
 
-  // Sign out
   async signOut() {
     try {
       const { error } = await supabase.auth.signOut();
@@ -172,21 +161,17 @@ export const authService = {
   },
 };
 
-// Review service functions - BARU DITAMBAHKAN
 export const reviewService = {
-  // Get all reviews
   async getReviews(filter = 'newest', searchQuery = '') {
     try {
       let query = supabase
         .from('food_reviews')
         .select('*');
       
-      // Apply search filter
       if (searchQuery) {
         query = query.ilike('review_text', `%${searchQuery}%`);
       }
       
-      // Apply sorting
       if (filter === 'newest') {
         query = query.order('created_at', { ascending: false });
       } else if (filter === 'popular') {
@@ -205,7 +190,6 @@ export const reviewService = {
     }
   },
 
-  // Add new review
   async addReview(reviewData) {
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -234,7 +218,6 @@ export const reviewService = {
     }
   },
 
-  // Update review likes
   async updateLikes(reviewId, newLikesCount) {
     try {
       const { data, error } = await supabase
@@ -252,7 +235,6 @@ export const reviewService = {
     }
   },
 
-  // Delete review (only by owner)
   async deleteReview(reviewId) {
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -262,7 +244,7 @@ export const reviewService = {
         .from('food_reviews')
         .delete()
         .eq('id', reviewId)
-        .eq('user_id', user.id); // Ensure only owner can delete
+        .eq('user_id', user.id); 
 
       if (error) throw error;
       return true;
@@ -272,7 +254,6 @@ export const reviewService = {
     }
   },
 
-  // Get reviews by user
   async getUserReviews(userId) {
     try {
       const { data, error } = await supabase
@@ -290,19 +271,15 @@ export const reviewService = {
   },
 };
 
-// Storage service functions - BARU DITAMBAHKAN
 export const storageService = {
-  // Upload image to food_images bucket
   async uploadFoodImage(base64Image, userId) {
     try {
       const { decode } = require('base64-arraybuffer');
       const fileName = `${userId}-${Date.now()}.jpg`;
       const filePath = `food_images/${fileName}`;
       
-      // Convert base64 to ArrayBuffer
       const arrayBuffer = decode(base64Image);
       
-      // Upload to Supabase Storage
       const { data, error } = await supabase
         .storage
         .from('food_images')
@@ -313,7 +290,6 @@ export const storageService = {
       
       if (error) throw error;
       
-      // Get public URL
       const { data: { publicUrl } } = supabase
         .storage
         .from('food_images')
@@ -326,7 +302,6 @@ export const storageService = {
     }
   },
 
-  // Delete image from storage
   async deleteImage(imagePath) {
     try {
       const { error } = await supabase
@@ -343,7 +318,6 @@ export const storageService = {
   },
 };
 
-// Real-time subscription helper - YANG SUDAH ADA
 export const subscribeToAddresses = (callback) => {
   return supabase
     .channel('addresses')
@@ -359,7 +333,6 @@ export const subscribeToAddresses = (callback) => {
     .subscribe();
 };
 
-// Real-time subscription untuk reviews - BARU DITAMBAHKAN
 export const subscribeToReviews = (callback) => {
   return supabase
     .channel('food_reviews')

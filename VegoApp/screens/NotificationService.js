@@ -2,7 +2,6 @@ import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
 import { Platform } from 'react-native';
 
-// Konfigurasi bagaimana notifikasi ditampilkan
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowAlert: true,
@@ -16,7 +15,6 @@ class NotificationService {
     this.expoPushToken = null;
   }
 
-  // Meminta izin dan mendapatkan push token
   async registerForPushNotificationsAsync() {
     let token;
 
@@ -53,7 +51,6 @@ class NotificationService {
     return token;
   }
 
-  // Mengirim notifikasi lokal
   async sendLocalNotification(title, body, data = {}) {
     await Notifications.scheduleNotificationAsync({
       content: {
@@ -66,7 +63,6 @@ class NotificationService {
     });
   }
 
-  // Mengirim notifikasi dengan delay
   async scheduleNotification(title, body, seconds, data = {}) {
     await Notifications.scheduleNotificationAsync({
       content: {
@@ -79,12 +75,10 @@ class NotificationService {
     });
   }
 
-  // Membatalkan semua notifikasi yang dijadwalkan
   async cancelAllNotifications() {
     await Notifications.cancelAllScheduledNotificationsAsync();
   }
 
-  // Notifikasi khusus untuk aplikasi Vego
   async sendOrderNotification(orderStatus, orderDetails) {
     const notifications = {
       'order_placed': {
@@ -115,7 +109,6 @@ class NotificationService {
     }
   }
 
-  // Notifikasi untuk resep baru
   async sendRecipeNotification(recipeName) {
     await this.sendLocalNotification(
       '📖 Resep Baru!',
@@ -124,7 +117,6 @@ class NotificationService {
     );
   }
 
-  // Notifikasi untuk forum chat
   async sendForumNotification(message, username) {
     await this.sendLocalNotification(
       '💬 Pesan Forum Baru',
@@ -133,7 +125,6 @@ class NotificationService {
     );
   }
 
-  // Notifikasi untuk restoran terdekat
   async sendNearbyRestaurantNotification(restaurantName, distance) {
     await this.sendLocalNotification(
       '📍 Restoran Vegan Terdekat',

@@ -65,7 +65,6 @@ export default function NearYouScreen({ navigation }) {
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
       
-      {/* Header */}
       <LinearGradient
         colors={['#FFA726', '#FF9800']}
         style={styles.header}
@@ -91,13 +90,11 @@ export default function NearYouScreen({ navigation }) {
       </LinearGradient>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Location Info */}
         <View style={styles.locationInfo}>
           <Ionicons name="location" size={20} color="#F44336" />
           <Text style={styles.locationText}>Tangerang Selatan, Indonesia</Text>
         </View>
 
-        {/* Map */}
         <View style={styles.mapContainer}>
           {location ? (
             <MapView
@@ -133,7 +130,6 @@ export default function NearYouScreen({ navigation }) {
           )}
         </View>
 
-        {/* Restaurant Near You */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Restaurant Near You</Text>
           
@@ -166,7 +162,6 @@ export default function NearYouScreen({ navigation }) {
           </ScrollView>
         </View>
 
-        {/* Near Tangerang Selatan */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Near Tangerang Selatan</Text>
           

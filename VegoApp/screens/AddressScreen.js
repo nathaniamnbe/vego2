@@ -62,7 +62,6 @@ export default function AddressScreen({ navigation }) {
       setLoading(true);
       const data = await addressService.getAddresses();
       
-      // Transform data to match component format
       const transformedAddresses = data.map(addr => ({
         id: addr.id,
         label: addr.label,
@@ -117,7 +116,6 @@ export default function AddressScreen({ navigation }) {
 
       const { latitude, longitude } = location.coords;
       
-      // Reverse geocoding to get address from coordinates
       const reverseGeocode = await Location.reverseGeocodeAsync({
         latitude,
         longitude,
@@ -199,10 +197,8 @@ export default function AddressScreen({ navigation }) {
       setSaving(true);
       
       if (editingAddress) {
-        // Update existing address
         const updatedAddress = await addressService.updateAddress(editingAddress.id, formData);
         
-        // Update local state
         setAddresses(addresses.map(addr => 
           addr.id === editingAddress.id ? {
             ...formData,
@@ -213,10 +209,8 @@ export default function AddressScreen({ navigation }) {
         
         Alert.alert('Berhasil', 'Alamat berhasil diperbarui!');
       } else {
-        // Add new address
         const newAddress = await addressService.addAddress(formData);
         
-        // Transform and add to local state
         const transformedAddress = {
           id: newAddress.id,
           label: newAddress.label,
@@ -239,7 +233,6 @@ export default function AddressScreen({ navigation }) {
       setShowAddModal(false);
       resetForm();
       
-      // Reload addresses to ensure consistency
       await loadAddresses();
       
     } catch (error) {
@@ -278,7 +271,6 @@ export default function AddressScreen({ navigation }) {
     try {
       await addressService.setDefaultAddress(addressId);
       
-      // Update local state
       setAddresses(addresses.map(addr => ({
         ...addr,
         isDefault: addr.id === addressId,
@@ -414,7 +406,6 @@ export default function AddressScreen({ navigation }) {
         </TouchableOpacity>
       </ScrollView>
 
-      {/* Add/Edit Address Modal */}
       <Modal
         visible={showAddModal}
         animationType="slide"
@@ -450,7 +441,6 @@ export default function AddressScreen({ navigation }) {
             keyboardShouldPersistTaps="handled"
           >
             <View style={styles.formContainer}>
-              {/* Geotag Section */}
               <View style={styles.geotagSection}>
                 <Text style={styles.sectionTitle}>📍 Geotag Lokasi</Text>
                 <TouchableOpacity
@@ -561,7 +551,6 @@ export default function AddressScreen({ navigation }) {
   );
 }
 
-// Styles (sama seperti sebelumnya dengan tambahan beberapa style baru)
 const styles = StyleSheet.create({
   container: {
     flex: 1,

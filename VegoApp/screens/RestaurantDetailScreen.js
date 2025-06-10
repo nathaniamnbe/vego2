@@ -61,7 +61,6 @@ export default function RestaurantDetailScreen({ navigation, route }) {
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
       
-      {/* Header Image */}
       <View style={styles.headerContainer}>
         <Image
           source={{ uri: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=400' }}
@@ -80,7 +79,6 @@ export default function RestaurantDetailScreen({ navigation, route }) {
         </LinearGradient>
       </View>
 
-      {/* Restaurant Info */}
       <View style={styles.restaurantInfo}>
         <Text style={styles.restaurantName}>Vegetarian Mak Ijoh - Gading Serpong</Text>
         <View style={styles.restaurantMeta}>
@@ -95,7 +93,6 @@ export default function RestaurantDetailScreen({ navigation, route }) {
           </View>
         </View>
 
-        {/* Delivery Options */}
         <View style={styles.deliveryContainer}>
           <View style={styles.deliveryOption}>
             <View style={styles.deliveryIcon}>
@@ -122,7 +119,6 @@ export default function RestaurantDetailScreen({ navigation, route }) {
         </View>
       </View>
 
-      {/* Menu Section */}
       <ScrollView style={styles.menuContainer} showsVerticalScrollIndicator={false}>
         <Text style={styles.menuTitle}>For You</Text>
         
@@ -146,7 +142,6 @@ export default function RestaurantDetailScreen({ navigation, route }) {
         </View>
       </ScrollView>
 
-      {/* Cart Button */}
       {cartItems.length > 0 && (
         <TouchableOpacity 
           style={styles.cartButton}

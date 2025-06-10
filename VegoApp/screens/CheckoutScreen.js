@@ -28,7 +28,6 @@ export default function CheckoutScreen({ navigation, route }) {
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
       
-      {/* Header */}
       <LinearGradient
         colors={['#FFA726', '#FF9800']}
         style={styles.header}
@@ -42,7 +41,6 @@ export default function CheckoutScreen({ navigation, route }) {
       </LinearGradient>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Address Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Address</Text>
           <View style={styles.addressContainer}>
@@ -59,7 +57,6 @@ export default function CheckoutScreen({ navigation, route }) {
           </TouchableOpacity>
         </View>
 
-        {/* Order Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Order</Text>
           <View style={styles.orderItem}>
@@ -83,7 +80,6 @@ export default function CheckoutScreen({ navigation, route }) {
           </View>
         </View>
 
-        {/* Payment Method Section */}
         <View style={styles.section}>
           <TouchableOpacity style={styles.paymentMethodButton}>
             <Text style={styles.paymentMethodText}>Pilih Metode Pembayaran</Text>
@@ -92,7 +88,6 @@ export default function CheckoutScreen({ navigation, route }) {
         </View>
       </ScrollView>
 
-      {/* Process Order Button */}
       <TouchableOpacity 
         style={styles.processButton}
         onPress={handleProcessOrder}

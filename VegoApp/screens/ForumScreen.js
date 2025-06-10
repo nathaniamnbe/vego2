@@ -34,13 +34,11 @@ export default function ForumScreen({ navigation }) {
     { key: 'most_liked', label: 'Most Liked' }
   ];
 
-  // Load data when component mounts
   useEffect(() => {
     checkUser();
     fetchReviews();
   }, []);
 
-  // Fetch reviews when filter changes
   useEffect(() => {
     fetchReviews();
   }, [selectedFilter]);
@@ -58,7 +56,6 @@ export default function ForumScreen({ navigation }) {
     try {
       setLoading(true);
       
-      // Map filter keys to match reviewService expectations
       const filterMap = {
         'newest': 'newest',
         'popular': 'popular', 
@@ -67,7 +64,6 @@ export default function ForumScreen({ navigation }) {
       
       const data = await reviewService.getReviews(filterMap[selectedFilter], searchQuery);
       
-      // Format the data to match component structure
       const formattedReviews = data.map(item => ({
         id: item.id,
         author: item.author_name,
@@ -82,7 +78,6 @@ export default function ForumScreen({ navigation }) {
       
       setReviews(formattedReviews);
       
-      // Set top sharing (reviews with likes or comments)
       const topSharingData = formattedReviews
         .filter(r => r.comments > 0 || r.likes > 0)
         .slice(0, 3);
@@ -117,7 +112,6 @@ export default function ForumScreen({ navigation }) {
     
     navigation.navigate('WriteReview', {
       onReviewSubmit: (newReview) => {
-        // Refresh reviews after new review is added
         fetchReviews();
       }
     });
@@ -130,23 +124,19 @@ export default function ForumScreen({ navigation }) {
         return;
       }
       
-      // Find current review
       const currentReview = reviews.find(r => r.id === reviewId);
       if (!currentReview) return;
       
       const newLikesCount = currentReview.likes + 1;
       
-      // Update in database
       await reviewService.updateLikes(reviewId, newLikesCount);
       
-      // Update local state
       setReviews(reviews.map(review => 
         review.id === reviewId 
           ? { ...review, likes: newLikesCount } 
           : review
       ));
       
-      // Also update topSharing if needed
       setTopSharing(topSharing.map(post => 
         post.id === reviewId 
           ? { ...post, likes: newLikesCount } 
@@ -184,7 +174,6 @@ export default function ForumScreen({ navigation }) {
         </View>
         <Text style={styles.reviewText}>{review.text}</Text>
         
-        {/* Action buttons for likes and comments */}
         <View style={styles.reviewActions}>
           <TouchableOpacity 
             style={styles.actionButton}
@@ -206,7 +195,6 @@ export default function ForumScreen({ navigation }) {
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
       
-      {/* Header */}
       <LinearGradient
         colors={['#FFA726', '#FF9800']}
         style={styles.header}
@@ -253,7 +241,6 @@ export default function ForumScreen({ navigation }) {
             />
           }
         >
-          {/* Filter Buttons */}
           <View style={styles.filterContainer}>
             {filters.map((filter) => (
               <TouchableOpacity
@@ -274,7 +261,6 @@ export default function ForumScreen({ navigation }) {
             ))}
           </View>
 
-          {/* Top Review Section */}
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>Top Review</Text>
@@ -297,7 +283,6 @@ export default function ForumScreen({ navigation }) {
             )}
           </View>
 
-          {/* Top Sharing Section */}
           {topSharing.length > 0 && (
             <View style={styles.section}>
               <View style={styles.sectionHeader}>
@@ -335,7 +320,6 @@ export default function ForumScreen({ navigation }) {
             </View>
           )}
 
-          {/* All Reviews Section */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>All Reviews</Text>
             {reviews.length > 1 ? (
@@ -349,7 +333,6 @@ export default function ForumScreen({ navigation }) {
         </ScrollView>
       )}
 
-      {/* Floating Action Button */}
       <TouchableOpacity style={styles.fab} onPress={handleAddReview}>
         <Ionicons name="add" size={28} color="white" />
       </TouchableOpacity>

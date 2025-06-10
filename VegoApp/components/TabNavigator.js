@@ -6,7 +6,7 @@ import HomeScreen from "../screens/HomeScreen"
 import PromoScreen from "../screens/PromoScreen"
 import PaymentScreen from "../screens/PaymentScreen"
 import ProfileScreen from "../screens/ProfileScreen"
-import AddressScreen from "../screens/AddressScreen" // Import AddressScreen
+import AddressScreen from "../screens/AddressScreen" 
 import OrderScreen from "../screens/OrderScreen"
 import RestaurantDetailScreen from "../screens/RestaurantDetailScreen"
 import MenuDetailScreen from "../screens/MenuDetailScreen"
@@ -22,7 +22,6 @@ import OrderHistoryScreen from "../screens/OrderHistoryScreen"
 const Tab = createBottomTabNavigator()
 const Stack = createStackNavigator()
 
-// Stack navigator untuk tab Home
 function HomeStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
@@ -41,7 +40,6 @@ function HomeStack() {
   )
 }
 
-// Stack navigator untuk tab Promo
 function PromoStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
@@ -52,7 +50,6 @@ function PromoStack() {
   )
 }
 
-// Stack navigator untuk tab Profile
 function ProfileStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
@@ -67,7 +64,6 @@ export default function TabNavigator() {
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
-        /* ---------- ikon ---------- */
         tabBarIcon: ({ focused, color, size }) => {
           let iconName
 
@@ -79,19 +75,16 @@ export default function TabNavigator() {
           return <Ionicons name={iconName} size={size} color={color} />
         },
 
-        /* ---------- warna & efek ---------- */
-        tabBarActiveTintColor: "#FFFFFF", // ikon + label saat aktif
-        tabBarInactiveTintColor: "#FFFFFF", // ikon + label saat tidak aktif
-        /**  ⬆ jika ingin sedikit dibedakan, ganti jadi rgba(255,255,255,0.7) */
+        tabBarActiveTintColor: "#FFFFFF", 
+        tabBarInactiveTintColor: "#FFFFFF", 
 
-        tabBarPressColor: "rgba(255,255,255,0.15)", // ripple Android (supaya tidak "hilang")
+        tabBarPressColor: "rgba(255,255,255,0.15)", 
 
-        /* ---------- style bar ---------- */
         tabBarStyle: {
           backgroundColor: "#FFA726",
           height: 60,
           paddingBottom: 5,
-          borderTopWidth: 0, // hilangkan garis atas default
+          borderTopWidth: 0, 
         },
         tabBarLabelStyle: {
           fontSize: 12,

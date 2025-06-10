@@ -6,7 +6,6 @@ import { LinearGradient } from "expo-linear-gradient"
 import { Ionicons } from "@expo/vector-icons"
 
 export default function OrderHistoryScreen({ navigation }) {
-  // Data dummy untuk order history
   const [orderHistory] = useState([
     {
       id: "ORD001",

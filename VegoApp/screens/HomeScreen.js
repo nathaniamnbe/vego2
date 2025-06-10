@@ -19,7 +19,6 @@ export default function HomeScreen({ navigation }) {
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
 
-      {/* Header */}
       <LinearGradient colors={["#FFA726", "#FF9800"]} style={styles.header}>
         <View style={styles.headerTop}>
           <Text style={styles.logo}>Vego</Text>
@@ -42,7 +41,6 @@ export default function HomeScreen({ navigation }) {
       </LinearGradient>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Banner */}
         <View style={styles.bannerContainer}>
           <Image
             source={{ uri: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=400" }}
@@ -55,7 +53,6 @@ export default function HomeScreen({ navigation }) {
           </View>
         </View>
 
-        {/* Menu Options */}
         <View style={styles.menuGrid}>
           <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate("Order")}>
             <View style={[styles.menuIcon, { backgroundColor: "#4CAF50" }]}>
@@ -86,7 +83,6 @@ export default function HomeScreen({ navigation }) {
           </TouchableOpacity>
         </View>
 
-        {/* From the Vegans Section */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>From the Vegans</Text>

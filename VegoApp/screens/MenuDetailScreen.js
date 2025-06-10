@@ -43,7 +43,6 @@ export default function MenuDetailScreen({ navigation, route }) {
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
       
-      {/* Header Image */}
       <View style={styles.headerContainer}>
         <Image
           source={{ uri: item?.image || 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400' }}
@@ -63,7 +62,6 @@ export default function MenuDetailScreen({ navigation, route }) {
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Menu Info */}
         <View style={styles.menuInfo}>
           <Text style={styles.menuName}>Drumstick Vegetarian</Text>
           <Text style={styles.menuPrice}>50.000</Text>
@@ -72,7 +70,6 @@ export default function MenuDetailScreen({ navigation, route }) {
           </Text>
         </View>
 
-        {/* Options Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Pilihan Menu Daun</Text>
           <Text style={styles.sectionSubtitle}>Optional, Max 1</Text>
@@ -87,7 +84,6 @@ export default function MenuDetailScreen({ navigation, route }) {
           ))}
         </View>
 
-        {/* Add-ons Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Add on</Text>
           <Text style={styles.sectionSubtitle}>Optional, Max 1</Text>
@@ -102,7 +98,6 @@ export default function MenuDetailScreen({ navigation, route }) {
           ))}
         </View>
 
-        {/* Note Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Note to restaurant</Text>
           <Text style={styles.sectionSubtitle}>Optional, Max 1</Text>
@@ -112,7 +107,6 @@ export default function MenuDetailScreen({ navigation, route }) {
           </View>
         </View>
 
-        {/* Quantity Section */}
         <View style={styles.quantitySection}>
           <TouchableOpacity 
             style={styles.quantityButton}
@@ -132,7 +126,6 @@ export default function MenuDetailScreen({ navigation, route }) {
         </View>
       </ScrollView>
 
-      {/* Add to Cart Button */}
       <TouchableOpacity 
         style={styles.addToCartButton}
         onPress={() => navigation.goBack()}

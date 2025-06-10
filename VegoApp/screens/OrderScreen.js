@@ -63,7 +63,6 @@ export default function OrderScreen({ navigation }) {
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
       
-      {/* Header */}
       <LinearGradient
         colors={['#FFA726', '#FF9800']}
         style={styles.header}
@@ -89,7 +88,6 @@ export default function OrderScreen({ navigation }) {
       </LinearGradient>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Categories */}
         <View style={styles.categoriesContainer}>
           {categories.map((category, index) => (
             <TouchableOpacity
@@ -108,7 +106,6 @@ export default function OrderScreen({ navigation }) {
           ))}
         </View>
 
-        {/* Features Grid */}
         <View style={styles.featuresGrid}>
           {features.map((feature, index) => (
             <TouchableOpacity key={index} style={styles.featureItem}>
@@ -123,7 +120,6 @@ export default function OrderScreen({ navigation }) {
           ))}
         </View>
 
-        {/* Order Now Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Order Now</Text>
           <Image
@@ -136,7 +132,6 @@ export default function OrderScreen({ navigation }) {
           </View>
         </View>
 
-        {/* 24 Hours Section */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>24 Hours</Text>
@@ -172,7 +167,6 @@ export default function OrderScreen({ navigation }) {
           </ScrollView>
         </View>
 
-        {/* Fast Serve Section */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Fast Serve</Text>
@@ -208,7 +202,6 @@ export default function OrderScreen({ navigation }) {
           </ScrollView>
         </View>
 
-        {/* Big Discount Section */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Big Discount</Text>

@@ -52,7 +52,6 @@ export default function SignupScreen({ navigation }) {
         Alert.alert("Signup Error", error.message);
       }
     } else {
-      // ✅ Simpan session & update context
       await AsyncStorage.setItem('session', JSON.stringify(data.session));
       setIsLoggedIn(true);
     }

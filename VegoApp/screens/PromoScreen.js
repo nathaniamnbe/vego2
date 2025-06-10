@@ -54,7 +54,6 @@ export default function PromoScreen({ navigation }) {
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
       
-      {/* Header */}
       <LinearGradient
         colors={['#FFA726', '#FF9800']}
         style={styles.header}
@@ -69,7 +68,6 @@ export default function PromoScreen({ navigation }) {
       </LinearGradient>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Voucher Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Voucher</Text>
           
@@ -87,7 +85,6 @@ export default function PromoScreen({ navigation }) {
           ))}
         </View>
 
-        {/* Big Discount Section */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Big Discount</Text>
